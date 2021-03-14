@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Яндекс-диск</title>
+    <style type="text/css">
+        html { height: 100%; }
+        body {
+            background: #fefcea linear-gradient(to top, #fefcea, #bdbdbd);
+        }
+        input.delete {
+            border: 1px solid #fff;
+            color: red;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<? if (isset($_SESSION['accessToken'])){?>
+    <p>Вы вошли на сайт как <b><?= substr($login[1], 6) ?></b></p>
+
+    <div>Занятое место: <b><?= humanBytes($diskSpace['usedBytes']) ?></b></div>
+    <div>Свободное место: <b><?= humanBytes($diskSpace['availableBytes'] - $diskSpace['usedBytes']) ?></b> из <b><?= humanBytes($diskSpace['availableBytes']) ?></b>.</div>
+
+    <h2>Содержимое Яндекс-диска</h2>
+
+    <table>
+        <? foreach ($dirContent as $item) {?>
+            <? if ($item['displayName'] != 'disk') { // Корневую паппку не выводим ?>
+            <tr>
+                <td>
+                    <? if ($item['resourceType'] === 'dir') { // Если является папкой ?>
+                        <a href="<?= $settings['uriPath'] ?>/<?= $item['displayName'] ?>" target="_blank">[<?= $item['displayName'] ?>]</a>
+                    <? } else { ?>
+                         <? switch ($item['contentType']){
+                            case 'image/jpeg':?>
+                                <a href="https://disk.yandex.ru/client/disk?display=normal&groupBy=none&order=1&selected=/disk/<?= $item['displayName'] ?>&sort=name&view=icons&wasAsideAnimated=true&typeClustering=geo&action=null&idAlbum=undefined&selectionSource=listing&idApp=client&dialog=slider&idDialog=/disk/<?= $item['displayName'] ?>" target="_blank"><?= $item['displayName'] ?></a>
+                            <? break;
+                            case 'video/mp4':?>
+                                <a href="https://disk.yandex.ru/client/disk?display=normal&groupBy=none&order=1&sort=name&view=icons&wasAsideAnimated=true&typeClustering=geo&action=null&idAlbum=undefined&selectionSource=listing&idApp=client&dialog=slider&idDialog=/disk/<?= $item['displayName'] ?>" target="_blank"><?= $item['displayName'] ?></a>
+                            <? break;
+                            default:?>
+                                <?= $item['displayName'] ?>
+                        <? } ?>
+                    <? } ?>
+                </td>
+                <td>
+                    <? if ($item['resourceType'] === 'file') { // Если является папкой ?>
+                        <?= humanBytes($item['contentLength']) ?>
+                    <? } ?>
+                </td>
+                <td><?= date('d.m.Y H:i:s', strtotime($item['creationDate'])) // Приводим к правильному формату времени ?></td>
+                <td>
+                    <form method="post">
+                        <input type="hidden" name="delFile" value="<?= htmlspecialchars($item['displayName']) ?>">
+                        <input type="submit" name="delete" class="delete" value="x">
+                    </form>
+                </td>
+            </tr>
+            <? } ?>
+        <? } ?>
+    </table>
+
+    <h2>Загрузка файлов в Яндекс-диск</h2>
+    <form method="post" enctype="multipart/form-data">
+        <input type="submit" name="upload" value="Загрузить файл">
+        <input type="file" name="files[]" multiple>
+    </form>
+<? } ?>
+</body>
+</html>
